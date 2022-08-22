@@ -92,6 +92,7 @@ class GNBlock(nn.Module):
         assert isinstance(graph, dgl.DGLGraph)
         with graph.local_scope():
             feat_src, feat_dst = expand_as_pair(feats, graph)
+            # 'h': current features (edge or node), 'hn': next edge features, 'nn': next node features, gn_feat: next global feature
             graph.srcdata['h'] = feat_src
             graph.edata['h'] = efeats
             graph.srcdata['g'] = gfeat.unsqueeze(0).repeat([feat_src.size()[0], 1])
@@ -104,15 +105,19 @@ class GNBlock(nn.Module):
 
 
 if __name__ == '__main__':
+    
+    # dgl graph
     g = dgl.graph(([0, 0, 1, 2], [1, 3, 2, 3]))
-
+    
+    # node features
     feat = torch.from_numpy(np.array([[3, 2], [2, 0], [1, 3], [0, 1]], dtype=np.float32))
+    # edge features
     efeat = torch.from_numpy(np.array([[1, 3], [2, 1], [5, 7], [2, 1]], dtype=np.float32))
+    # edge types
     ei = torch.from_numpy(np.array([1, 0, 2, 0]))
-
+    # global featrue (or graph feature)
     gfeat = torch.from_numpy(np.array([2, 3, 8, 1], dtype=np.float32))
 
-    test = feat + efeat
     net1 = GNBlock(2, 2, 4)
     net2 = GNBlock(2, 2, 4)
     h1 = net1(g, feat, efeat, ei, gfeat)
